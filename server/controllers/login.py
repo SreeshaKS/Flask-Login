@@ -5,24 +5,8 @@ from flask_pymongo import PyMongo
 import controllers
 import json
 from bson.objectid import ObjectId
-from schemas import validate_login_data
-from bson.json_util import dumps
-from pymongo import MongoClient
-from schemas import validate_user
 
-client = MongoClient('mongodb://localhost/database')
-db = client['database']
-
-# class CustomJSONEncoder(json.JSONEncoder):
-#     def default(self, o):
-#         if isinstance(o, ObjectId):
-#             return str(o)
-#         if isinstance(o, datetime.datetime):
-#             return str(o)
-#         return json.JSONEncoder.default(self, o)
-
-
-app = flask.Flask(__name__)#,static_url_path='/browser-client/src')
+app = flask.Flask(__name__)
 app.secret_key = '2398749345kjerjkrgf!@#_$)#FKDINFD'
 
 
@@ -68,17 +52,13 @@ def request_loader(request):
 @app.route('/login', methods=[ 'POST'])
 def login():
     data = flask.request.get_json()
-    validated = validate_login_data(data)
-    if validated['ok']:
-        if data['password'] == users[data['username']]['password']:
-            user = User()
-            user.id = data['username']
-            flask_login.login_user(user)
-            return flask.jsonify({'ok':'true','userData':users[data['username']]['data']})
+    if data['password'] == users[data['username']]['password']:
+        user = User()
+        user.id = data['username']
+        flask_login.login_user(user)
+        return flask.jsonify({'ok':'true','userData':users[data['username']]['data']})
 
-        return flask.jsonify({'error':'Bad login','ok':'false'})
-    else
-        return flask.jsonify(validated)
+    return flask.jsonify({'error':'Bad login','ok':'false'})
     
 @app.route('/user', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 @flask_login.login_required
