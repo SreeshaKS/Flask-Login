@@ -38,40 +38,8 @@ jwt = JWTManager(app)
 
 CORS(app)
 
-login_manager = flask_login.LoginManager()
-login_manager.init_app(app)
-
-#mock database
-users = {'sree': {'password': 'sree' , 'data':['comp1']}}
-
-class User(flask_login.UserMixin):
-    pass
-
-
-@login_manager.user_loader
-def user_loader(email):
-    if email not in users:
-        return
-
-    user = User()
-    user.id = email
-    return user
-
-
-@login_manager.request_loader
-def request_loader(request):
-    email = request.form.get('email')
-    if email not in users:
-        return
-
-    user = User()
-    user.id = email
-
-    # DO NOT ever store passwords in plaintext and always compare password
-    # hashes using constant-time comparison!
-    user.is_authenticated = request.form['password'] == users[email]['password']
-
-    return user
+# login_manager = flask_login.LoginManager()
+# login_manager.init_app(app)
 
 @app.route('/login', methods=[ 'POST'])
 def login():
@@ -79,9 +47,6 @@ def login():
     validated = validate_login_data(data)
     if validated['ok']:
         user = db.users.find_one({'email': data['email']},{"_id": 0})
-        #return str({'sdarg':flask_bcrypt.generate_password_hash(data['password']),'':user['password']})
-        #print flask_bcrypt.generate_password_hash(data['password'])
-        #print user['password']
         if user and flask_bcrypt.check_password_hash(user['password'],data['password']):
             access_token = create_access_token(identity=data)
             refresh_token= create_refresh_token(identity=data)
@@ -93,18 +58,12 @@ def login():
     else:
         return flask.jsonify({'ok': False, 'message': validated['message'] }), 400
     
-@app.route('/user', methods=['GET', 'POST', 'DELETE', 'PATCH'])
+@app.route('/user', methods=['POST','GET', 'DELETE', 'PATCH'])
 def user():
     return controllers.userRoute()
 
-@app.route('/protected')
-@flask_login.login_required
-def protected():
-    return "{'access':['comp1','comp2']}"
-
 @app.route('/logout')
 def logout():
-    flask_login.logout_user()
     return 'Logged out'
 
 white = ['http://localhost:8081']
