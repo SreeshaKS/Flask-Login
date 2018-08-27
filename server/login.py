@@ -9,6 +9,11 @@ from schemas import validate_login_data
 from bson.json_util import dumps
 from pymongo import MongoClient
 from schemas import validate_user
+from flask_jwt_extended import JWTManager,create_access_token,create_refresh_token
+import flask_bcrypt
+from flask_bcrypt import Bcrypt
+import datetime
+import os
 
 client = MongoClient('mongodb://localhost/database')
 db = client['database']
@@ -24,7 +29,10 @@ db = client['database']
 
 app = flask.Flask(__name__)#,static_url_path='/browser-client/src')
 app.secret_key = '2398749345kjerjkrgf!@#_$)#FKDINFD'
+app.config['JWT_SECRET_KEY'] = os.environ.get('SECRET')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(days=1)
 
+jwt = JWTManager(app)
 
 # app.json_encoder = CustomJSONEncoder
 
@@ -70,18 +78,22 @@ def login():
     data = flask.request.get_json()
     validated = validate_login_data(data)
     if validated['ok']:
-        if data['password'] == users[data['username']]['password']:
-            user = User()
-            user.id = data['username']
-            flask_login.login_user(user)
-            return flask.jsonify({'ok':'true','userData':users[data['username']]['data']})
-
-        return flask.jsonify({'error':'Bad login','ok':'false'})
-    else
-        return flask.jsonify(validated)
+        user = db.users.find_one({'email': data['email']},{"_id": 0})
+        #return str({'sdarg':flask_bcrypt.generate_password_hash(data['password']),'':user['password']})
+        #print flask_bcrypt.generate_password_hash(data['password'])
+        #print user['password']
+        if user and flask_bcrypt.check_password_hash(user['password'],data['password']):
+            access_token = create_access_token(identity=data)
+            refresh_token= create_refresh_token(identity=data)
+            user['token']=access_token
+            user['refresh']=refresh_token
+            return flask.jsonify({'ok':True,'data':user}), 200
+        else:
+            return flask.jsonify({'ok':False,'message':'Invalid username or password'}), 401
+    else:
+        return flask.jsonify({'ok': False, 'message': validated['message'] }), 400
     
 @app.route('/user', methods=['GET', 'POST', 'DELETE', 'PATCH'])
-@flask_login.login_required
 def user():
     return controllers.userRoute()
 

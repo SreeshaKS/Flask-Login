@@ -20,7 +20,7 @@ export default class MainPage extends Component {
                 <Grid centered padded>
 
                     {
-                        userData.userData.map((e,i)=>{
+                        userData.data.access.map((e,i)=>{
                             return (
                                 <Grid.Column key={i} color='blue' width={2}>
                                     {e}

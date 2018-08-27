@@ -9,12 +9,11 @@ user_schema = {
             "type": "string",
         },
         "email": {
-            "type": "string",
-            "format": "email"
+            "type": "string"
         },
         "password": {
             "type": "string",
-            "minLength": 5
+            "minLength": 2
         },
         "access": {
             "type": "array"
@@ -27,15 +26,15 @@ user_schema = {
 login_schema = {
     "type": "object",
     "properties": {
-        "username": {
+        "email": {
             "type": "string",
         },
         "password": {
             "type": "string",
-            "minLength": 5
+            "minLength": 2
         }
     },
-    "required": ["username", "password"],
+    "required": ["email", "password"],
     "additionalProperties": False
 }
 

@@ -34,6 +34,7 @@ class App extends Component {
         }
     }
     setInitalState = (data,isLoggedIn) => {
+        console.log('Setting state',data,isLoggedIn)
         this.setState({
             data
             ,isLoggedIn
@@ -45,13 +46,13 @@ class App extends Component {
                 .post(
                     config.serverAuthority + config.PATH_LOGIN
                     , {
-                        username: data.username,
+                        email: data.username,
                         password: data.password
                     }
                     , (e, d) => {
-                        console.log('test',e,d)
+                        console.log(e)
                         if (!e) {
-                            if (d.ok == 'true') {
+                            if (d.ok) {
                                 onValidated("success", 'Logged In', 'Proceed')
                                 this.setInitalState(d,true);
                             } else {
